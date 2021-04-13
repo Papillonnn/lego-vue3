@@ -35,6 +35,7 @@
         <props-table
           v-if="currentElement && currentElement.props"
           :props="currentElement.props"
+          @change="handleChange"
         ></props-table>
         <pre>
           {{ currentElement && currentElement.props }}
@@ -52,7 +53,7 @@ import EditWrapper from '../components/EditWrapper.vue';
 import PropsTable from '../components/PropsTable.vue';
 import { useStore } from 'vuex';
 import { GlobalDataProps } from '@/store';
-import { defaultTextTemplates } from '../defaultTemplates';
+import { defaultTextTemplates } from '@/defaultTemplates';
 import { TextComponentProps } from '@/defaultProps';
 import { ComponentData } from '@/store/editor';
 
@@ -74,12 +75,16 @@ export default defineComponent({
     const setActive = (id: string) => {
       store.commit('setActive', id)
     }
+    const handleChange = (e: any) => {
+      store.commit('updateComponent', e)
+    }
     return {
       components,
       currentElement,
       defaultTextTemplates,
       addItem,
       setActive,
+      handleChange
     };
   },
 });

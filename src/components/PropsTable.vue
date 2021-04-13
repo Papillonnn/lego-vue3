@@ -3,14 +3,21 @@
     <div class="prop-item" v-for="(value, index) in finalProps" :key="index">
       <span class="label" v-if="value.text">{{value.text}}</span>
       <div class="prop-component">
-        <component :is="value.component" :value="value.value" v-bind="value.extraProps">
+        <component
+          :is="value.component"
+          :[value.valueProp]="value.value"
+          v-bind="value.extraProps"
+          v-on="value.events"
+        >
           <template v-if="value.options">
             <component
-                :is="value.subComponent"
-                v-for="(item, k) in value.options"
-                :key="k"
-                :value="item.value"
-            >{{item.text}}</component>
+              :is="value.subComponent"
+              v-for="(option, k) in value.options"
+              :key="k"
+              :value="option.value"
+            >
+              <render-vnode :vNode="option.text"></render-vnode>
+            </component>
           </template>
         </component>
       </div>
@@ -19,10 +26,23 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType } from "vue";
+import {computed, defineComponent, PropType, VNode} from "vue";
 import { TextComponentProps } from "@/defaultProps";
 import { reduce } from "lodash-es";
-import { mapPropsToForms, PropsToForm } from "@/propsMap";
+import { mapPropsToForms } from "@/propsMap.tsx";
+import RenderVnode from "@/components/RenderVnode";
+import ColorPicker from "@/components/ColorPicker.vue";
+export interface FormProps {
+  component: string;
+  subComponent?: string;
+  value: string;
+  extraProps?: { [key: string]: any };
+  text?: string;
+  options?: { text: string | VNode; value: any }[];
+  valueProp: string; // 组件传入的属性不一定是"value" 用来自定义传入组件属性名
+  eventName: string;
+  events: { [ key: string ]: (e: any) => void };
+}
 export default defineComponent({
   props: {
     props: {
@@ -30,7 +50,12 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  components: {
+    RenderVnode,
+    ColorPicker
+  },
+  emits: ['change'],
+  setup(props, context) {
     const finalProps = computed(() => {
       return reduce(
         props.props,
@@ -38,12 +63,21 @@ export default defineComponent({
           const newKey = key as keyof TextComponentProps;
           const item = mapPropsToForms[newKey];
           if (item) {
-            item.value = item.initialTransform ? item.initialTransform(value) : value;
-            result[newKey] = item;
+            const { valueProp = 'value', eventName = 'change', initialTransform, afterTransform} = item
+            const newItem = {
+              ...item,
+              value: initialTransform ? initialTransform(value) : value,
+              valueProp,
+              eventName,
+              events: {
+                [eventName]: (e: any) => { context.emit('change', { key, value: afterTransform ? afterTransform(e) : e }) }
+              }
+            }
+            result[newKey] = newItem;
           }
           return result;
         },
-        {} as Required<PropsToForm>
+        {} as { [key: string]: FormProps}
       );
     });
     return {

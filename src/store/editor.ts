@@ -37,6 +37,15 @@ const editor = {
             }
             state.components.push(newComponent)
         },
+        removeComponent(state: EditorProps, id: string) {
+            state.components = state.components.filter(component => component.id !== id)
+        },
+        updateComponent(state: EditorProps, e: any) {
+            const updateComponent = state.components.find(component => component.id === state.currentElement)
+            if (updateComponent) {
+                updateComponent.props[e.key as keyof TextComponentProps] = e.value
+            }
+        },
         setActive(state: EditorProps, currentId: string) {
             state.currentElement = currentId
         }

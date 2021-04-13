@@ -1,12 +1,24 @@
+import {Module} from "vuex"
+import { GlobalDataProps } from "@/store/index";
+
 export interface UserProps {
     isLogin: boolean;
-    userName: string;
+    userName?: string;
 }
 
-const user = {
+const user: Module<UserProps, GlobalDataProps> = {
     state: {
         isLogin: true,
         userName: '嘻嘻'
+    },
+    mutations: {
+        login(state) {
+            state.isLogin = true
+            state.userName = 'jack'
+        },
+        logout(state) {
+            state.isLogin = false
+        }
     }
 }
 

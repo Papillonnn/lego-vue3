@@ -1,7 +1,6 @@
-# 慕课乐高标准模版
+# vue3+ts+antd乐高项目
 
 ## 特性
-* 开箱即用
 * **typescript** 
 * Vue3
 * 支持 tsx
